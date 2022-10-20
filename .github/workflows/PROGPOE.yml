@@ -1,0 +1,64 @@
+  # This is a basic workflow that is manually triggered
+
+name: TestPROGPOE
+
+# Controls when the workflow will run
+on:
+  # Triggers the workflow on push or pull request events but only for the master branch
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  build:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+      
+     # list contents or directory
+      - name: List contents
+        run: ls
+     # Compiles classes to test 
+      - name: compile classes
+        working-directory: ./src
+        run: javac -cp "../testresources/junit-platform-console-standalone-1.6.2.jar" ./KanBanBoardV1/Main.java ./KanBanBoardV1/Login.java ./KanBanBoardV1/GuiCreator.java ./KanBanBoardV1/Tasks.java ./KanBanBoardV1/Search.java "../test/KanBanBoardV1/LoginTest.java"  "../test/KanBanBoardV1/TasksTest.java" "../test/KanBanBoardV1/SearchTest.java"
+
+    # list contents of src to verify that classess compiled 
+      - name: List contents of src directory after compile
+        working-directory: ./src/KanBanBoardV1
+        run: ls
+        
+        
+       # copy compiled classes to test directory 
+      - name : copy compiled classes to testresources directory 
+        working-directory: ./src/KanBanBoardV1
+        run: cp -t  "../../test/KanBanBoardV1" Main.class Login.class GuiCreator.class Tasks.class Search.class
+        
+        #copy compiled tests 
+      - name : copy compiled Test classes to testresources directory 
+        working-directory: ./test/KanBanBoardV1
+        run: cp -t  "../../testresources/" Main.class Login.class GuiCreator.class Tasks.class Search.class
+        
+        # list contents or directory
+      - name: List contents test package
+        working-directory: ./test/KanBanBoardV1
+        run: ls
+        
+        #run Login Class tests and output report 
+      - name: run Login Class tests and create report 
+        working-directory: ./test
+        run: |
+         ls
+         java -jar  "../testresources/junit-platform-console-standalone-1.6.2.jar" -cp "." --select-class  KanBanBoardV1.LoginTest 
+         java -jar  "../testresources/junit-platform-console-standalone-1.6.2.jar" -cp "." --select-class  KanBanBoardV1.TasksTest
+         java -jar  "../testresources/junit-platform-console-standalone-1.6.2.jar" -cp "." --select-class  KanBanBoardV1.SearchTest
